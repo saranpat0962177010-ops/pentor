@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="th">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>ลอยกระทงออนไลน์</title>
+	<link rel="stylesheet" href="styles.css" />
+
+	<!-- เพิ่มสไตล์สำหรับกระทงสวยงามและเอฟเฟกต์ -->
+	<style>
+	:root{
+		/* Loy Krathong theme variables */
+		--lk-accent: #ffb86b;       /* warm candle / lotus */
+		--lk-accent-2: #ffd9a8;     /* soft highlight */
+		--lk-water: #072f4a;        /* deep river tone */
+		--lk-sky: linear-gradient(180deg,#071a2b 0%, #0b3750 60%, rgba(10,18,28,1) 100%);
+		--lk-paper: #fffdf6;
+		--lk-sand: #d9b98a;
+		--lk-text: #fff7ec;
+		--lk-muted: rgba(255,255,255,0.18);
+	}
+	/* apply theme to body for easy toggling */
+	body.loy-theme{
+		background: var(--lk-sky);
+		color: var(--lk-text);
+	}
+	/* Header banner & typography */
+	header{
+		display:flex;
+		align-items:center;
+		justify-content:space-between;
+		gap:12px;
+		padding:14px 22px;
+		background: linear-gradient(90deg, rgba(0,0,0,0.12), rgba(255,255,255,0.02));
+		backdrop-filter: blur(6px);
+		position:relative;
+		z-index:160;
+	}
+	header h1{ margin:0; font-size:20px; letter-spacing:0.6px; color:var(--lk-text); font-weight:700 }
+	header .subtitle{ font-size:12px; color:var(--lk-muted); margin-left:8px }
+	/* decorative lotus motif at left of header */
+	.header-banner{ display:flex; align-items:center; gap:10px; }
+	.header-banner svg{ width:44px; height:44px; flex:0 0 44px; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.45)); }
+
+	/* form & buttons themed */
+	.form-box{
+		background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+		border-radius:12px;
+		padding:14px;
+		box-shadow: 0 8px 28px rgba(2,6,18,0.55);
+		border: 1px solid rgba(255,255,255,0.03);
+	}
+	.form-box input, .form-box textarea, .form-box select{
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.06);
+		color: var(--lk-text);
+		padding:8px 10px;
+		border-radius:8px;
+		margin-top:6px; display:block; width:100%;
+	}
+	.form-box button{
+		background: linear-gradient(180deg, var(--lk-accent), #ff9f3a);
+		color: #2b1b0a;
+		border:0;
+		padding:10px 14px;
+		border-radius:10px;
+		box-shadow: 0 10px 26px rgba(255,150,50,0.12);
+		cursor:pointer;
+	}
+	.form-box button:hover{ transform:translateY(-2px); box-shadow:0 14px 32px rgba(255,150,50,0.18) }
+
+	/* pier accents */
+	.pier .plank{ background: linear-gradient(180deg,var(--lk-sand), #8a5a33); border: 1px solid rgba(0,0,0,0.16); }
+	.pier .launch-spot{ background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.02) }
+
+	/* small touch: change krathong highlight to theme accent */
+	.krathong .body::before{ box-shadow: 0 10px 34px rgba(255,180,80,0.06); }
+	.krathong.classic .petal{ background: linear-gradient(180deg, var(--lk-accent-2), var(--lk-accent)); }
+	/* ensure counter uses readable color */
+	#krathongCounter{ background: rgba(3,6,18,0.5); color: var(--lk-text) }
+	/* total participants badge */
+	#totalParticipants{ background: rgba(255,255,255,0.04); color: var(--lk-text); padding:6px 10px; border-radius:10px; font-weight:600; font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,0.35); }
+
+	/* เพิ่มกลีบ ดอก และแสงรอบๆ กระทง */
+	.krathong .body{
+		position:relative;
+		overflow:visible;
+		box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 18px rgba(255,160,80,0.08);
+	}
+	.krathong .body::before,
+	.krathong .body::after{
+		content:"";
+		position:absolute;
+		left:50%;
+		transform:translateX(-50%);
+		top:-10px;
+		width:90%;
+		height:24px;
+		border-radius:50%;
+		opacity:0.9;
+		pointer-events:none;
+	}
+	.krathong.classic .body::before{background: radial-gradient(ellipse at center, rgba(255,230,215,0.9), rgba(255,180,120,0.2));}
+	.krathong.leaf .body::before{background: radial-gradient(ellipse at center, rgba(180,245,200,0.95), rgba(120,220,150,0.2));}
+	.krathong.modern .body::before{background: radial-gradient(ellipse at center, rgba(255,250,190,0.95), rgba(255,210,110,0.12));}
+
+	/* กลีบรอบๆ กระทง (ใช้ pseudo elements เป็นแสงและเงา) */
+	.krathong .petal{
+		position:absolute;
+		width:18px;height:28px;border-radius:50% 50% 30% 30%;
+		background:rgba(255,200,150,0.95);transform-origin:50% 90%;
+		box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+	}
+	.krathong.classic .petal{background:linear-gradient(180deg,#ffd9c2,#ffb48a);}
+	.krathong.leaf .petal{background:linear-gradient(180deg,#d2f5c9,#92d98b);}
+	.krathong.modern .petal{background:linear-gradient(180deg,#fff8c4,#ffd66b);}
+
+	/* วางกลีบหลายชิ้นรอบ ๆ */
+	.krathong .petal.p1{left:12%;top:-10px;transform:rotate(-28deg) scale(0.9)}
+	.krathong .petal.p2{left:30%;top:-14px;transform:rotate(-12deg) scale(1)}
+	.krathong .petal.p3{left:50%;top:-16px;transform:translateX(-50%) rotate(0deg) scale(1.05)}
+	.krathong .petal.p4{left:70%;top:-14px;transform:rotate(12deg) scale(1)}
+	.krathong .petal.p5{left:88%;top:-10px;transform:rotate(28deg) scale(0.9)}
+
+	/* เปลวเทียนสวยงาม */
+	.candle{
+		position:relative;
+	}
+	.candle::after{
+		content:"";
+		position:absolute;
+		left:50%;
+		top:-18px;
+		transform:translateX(-50%);
+		width:10px;height:18px;border-radius:50% 50% 20% 20%;
+		background:linear-gradient(180deg,#fff8b8,#ffcf5c);
+		filter:blur(0.6px);
+		box-shadow:0 0 14px rgba(255,200,60,0.9), 0 0 30px rgba(255,150,30,0.15);
+		animation:flame 1.6s infinite;
+	}
+
+	@keyframes flame{
+		0%{transform:translateX(-50%) translateY(0) scale(1) rotate(0); opacity:1}
+		50%{transform:translateX(-52%) translateY(-2px) scale(1.03) rotate(-2deg); opacity:0.95}
+		100%{transform:translateX(-50%) translateY(0) scale(1) rotate(0); opacity:1}
+	}
+
+	/* การโยกแบบธรรมชาติขณะลอย */
+	.krathong{
+		animation:gentle-sway 6s ease-in-out infinite;
+	}
+	@keyframes gentle-sway{
+		0%{transform:translateX(0) translateY(0) rotate(-1deg)}
+		50%{transform:translateX(0.6vw) translateY(-1vh) rotate(1deg)}
+		100%{transform:translateX(0) translateY(0) rotate(-1deg)}
+	}
+
+	/* เอฟเฟกต์แสงลอย (fireflies) */
+	.particle-lights{position:absolute;inset:0;pointer-events:none}
+	.firefly{
+		position:absolute;width:8px;height:8px;border-radius:50%;
+		background: radial-gradient(circle at 30% 30%, #fff, #ffd47a 40%, rgba(255,180,60,0.2) 70%);
+		box-shadow:0 0 12px rgba(255,220,130,0.9), 0 0 30px rgba(255,180,50,0.12);
+		opacity:0;transform:translateY(0) scale(0.6);
+		animation:fireflyUp linear forwards;
+	}
+	@keyframes fireflyUp{
+		0%{opacity:0; transform:translateY(10vh) scale(0.6)}
+		10%{opacity:1}
+		95%{opacity:0.7}
+		100%{opacity:0; transform:translateY(-20vh) scale(0.3)}
+	}
+
+	/* ทวิ้งเคิลเล็ก ๆ ในน้ำ */
+	.twinkle{
+		position:absolute;width:4px;height:4px;border-radius:50%;
+		background:rgba(255,255,255,0.9);filter:blur(1px);
+		animation:twinkle 2.8s infinite;
+		opacity:0.9;
+	}
+	@keyframes twinkle{
+		0%{transform:scale(0.6);opacity:0.2}
+		50%{transform:scale(1.2);opacity:1}
+		100%{transform:scale(0.6);opacity:0.2}
+	}
+
+	/* ปรับ float-away ให้มีการหมุนเบา ๆ */
+	.float-away{
+		transition:transform 22s linear, opacity 22s linear;
+		animation: driftRotate 22s linear forwards;
+	}
+	@keyframes driftRotate{
+		0%{transform:translateX(0) translateY(0) rotate(0); opacity:1}
+		100%{transform:translateX(120vw) translateY(-10vh) rotate(12deg); opacity:0}
+	}
+
+	/* --- realism enhancements: depth, candle glow, wakes --- */
+	.krathong{
+		/* allow per-instance scaling via --kr-scale and slight z-based blur via --kr-z */
+		transform-origin:50% 60%;
+		transition: transform 900ms cubic-bezier(.2,.8,.2,1), filter 900ms linear;
+		/* default custom properties */
+		--kr-scale: 1;
+		--kr-z: 1;
+		transform: scale(var(--kr-scale));
+		filter: drop-shadow(0 calc(6px * var(--kr-z)) 18px rgba(0,0,0,0.45));
+		will-change: transform;
+	}
+	/* stronger candle ambient glow using an inner element (added by JS if candle exists) */
+	.krathong .candle-glow{
+		pointer-events:none;
+		position:absolute; left:50%; top:-6%;
+		transform:translateX(-50%);
+		width:110%; height:140%;
+		border-radius:50%;
+		background: radial-gradient(circle at 50% 30%, rgba(255,220,130,0.35), rgba(255,160,40,0.06) 35%, transparent 60%);
+		filter: blur(8px) saturate(1.05);
+		opacity:0.9;
+		animation: glowPulse 2.1s ease-in-out infinite;
+		mix-blend-mode: screen;
+	}
+	@keyframes glowPulse{ 0%{opacity:0.72}50%{opacity:0.95}100%{opacity:0.72} }
+
+	/* small wake elements created by JS to make motion feel fluid */
+	.wake{
+		position:absolute;
+		width:10px;height:6px;border-radius:50%;
+		background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+		filter: blur(4px);
+		opacity:0.9;
+		pointer-events:none;
+		transform-origin:center;
+		animation: wakeExpand 1.4s cubic-bezier(.22,.9,.3,1) forwards;
+	}
+	@keyframes wakeExpand{
+		0%{ transform: translateY(0) scaleX(0.4) scaleY(0.6); opacity:0.9 }
+		100%{ transform: translateY(-10px) scaleX(6) scaleY(1) ; opacity:0 }
+	}
+
+	/* subtle depth-based desaturation for far krathongs */
+	.krathong[ data-depth="far" ]{ filter: saturate(0.9) blur(.6px) }
+	.krathong[ data-depth="near" ]{ filter: saturate(1.06) }
+
+	/* preview ในฟอร์ม */
+	#imagePreview{ max-width:100%; margin-top:8px; border-radius:6px; display:block; box-shadow:0 4px 12px rgba(0,0,0,0.3) }
+
+	/* รูปที่ฝังบนกระทง */
+	.krathong .krathong-img{
+		position:absolute;
+		left:50%;
+		top:8%;
+		transform:translateX(-50%);
+		width:60%;
+		height:auto;
+		object-fit:cover;
+		border-radius:8px;
+		box-shadow: 0 8px 20px rgba(0,0,0,0.45), 0 0 18px rgba(255,200,60,0.08);
+		pointer-events:none;
+		opacity:0.98;
+	}
+	/* ลดขนาดสะท้อนถ้าสะท้อนมีภาพ */
+	.krathong .reflection img{ opacity:0.6; filter: blur(3px) saturate(0.9) }
+
+	/* === เพิ่มสไตล์สำหรับพระจันทร์และท้องฟ้า === */
+	.sky{
+		position:fixed;
+		left:0;right:0;top:0;
+		/* ลดท้องฟ้าให้เหลือน้อยลง เพื่อให้พื้นที่น้ำมากขึ้น */
+		height:36vh;
+		pointer-events:none;
+		z-index:30;
+		overflow:visible;
+	}
+	.moon{
+		position:absolute;
+		right:4%;
+		top:4%;
+		/* เล็กลงเพื่อไม่บดบัง UI */
+		width:320px;
+		height:320px;
+		border-radius:50%;
+		/* same surface layers, slightly softened */
+		background-image:
+			radial-gradient(circle at 30% 28%, #fffdf0 0%, #fff6c8 28%, #f2df97 56%, #d4c06e 80%, #bca85a 100%),
+			radial-gradient(circle at 58% 38%, rgba(18,24,28,0.07) 0 10%, transparent 12%),
+			radial-gradient(circle at 36% 60%, rgba(18,24,28,0.05) 0 8%, transparent 10%),
+			radial-gradient(circle at 68% 64%, rgba(10,14,16,0.06) 0 9%, transparent 11%),
+			radial-gradient(circle at 22% 22%, rgba(0,0,0,0.09) 0 5%, rgba(255,255,255,0.02) 6% 8%, transparent 12%),
+			radial-gradient(circle at 48% 18%, rgba(0,0,0,0.10) 0 6%, rgba(255,255,255,0.03) 7% 9%, transparent 13%);
+		background-blend-mode: normal, multiply, multiply, multiply, overlay, overlay;
+		box-shadow:
+			0 0 88px rgba(255,245,190,0.16),
+			inset -12px -10px 30px rgba(0,0,0,0.07),
+			0 28px 72px rgba(0,0,0,0.36);
+		filter: drop-shadow(0 14px 30px rgba(0,0,0,0.24));
+		animation: moonFloat 14s ease-in-out infinite;
+		background-size: cover;
+	}
+	/* subtle slow sparkle overlay on moon */
+	.moon::after{
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		pointer-events: none;
+		/* multiple tiny highlights positioned around the moon */
+		background-image:
+			radial-gradient(circle at 22% 18%, rgba(255,255,255,0.16) 0 2%, transparent 6%),
+			radial-gradient(circle at 78% 28%, rgba(255,255,255,0.12) 0 2%, transparent 6%),
+			radial-gradient(circle at 50% 72%, rgba(255,255,255,0.10) 0 2%, transparent 6%);
+		mix-blend-mode: screen;
+		opacity: 0.06;
+		filter: blur(1.6px) saturate(1.08);
+		animation: moonTwinkle 9.6s ease-in-out infinite;
+	}
+
+	@keyframes moonTwinkle{
+		0%{ opacity:0.05; transform:scale(1) }
+		35%{ opacity:0.16; transform:scale(1.02) }
+		65%{ opacity:0.08; transform:scale(0.995) }
+		100%{ opacity:0.05; transform:scale(1) }
+	}
+
+	/* subtle textured overlay (fine grain + soft highlights) */
+	.moon::before,
+	.moon::after{
+		content:"";
+		position:absolute; inset:0; border-radius:50%;
+		pointer-events:none;
+	}
+	/* light pockmarks and soft speculars */
+	.moon::before{
+		background:
+			radial-gradient(circle at 42% 36%, rgba(255,255,255,0.06) 0 2%, transparent 6%),
+			radial-gradient(circle at 66% 46%, rgba(255,255,255,0.04) 0 2%, transparent 5%),
+			radial-gradient(circle at 52% 72%, rgba(0,0,0,0.06) 0 2%, transparent 6%);
+		mix-blend-mode: screen;
+		opacity:0.85;
+		filter: blur(1px);
+	}
+
+	/* soft grain for realism */
+	.moon::after{
+		background:
+			repeating-radial-gradient(circle at 40% 40%, rgba(0,0,0,0.005) 0 1px, rgba(255,255,255,0.003) 1px 2px);
+		opacity:0.6;
+		mix-blend-mode: overlay;
+		filter: blur(0.6px) contrast(0.98);
+	}
+
+	/* ปรับ @keyframes ให้ช้าลงบางส่วน (เฉพาะ moon) */
+	@keyframes moonFloat{
+		0%{transform:translateY(0) rotate(0)}
+		50%{transform:translateY(10px) rotate(0.6deg)}
+		100%{transform:translateY(0) rotate(0)}
+	}
+
+	/* ปรับขนาดบนหน้าจอเล็ก (ลดขนาดดวงจันทร์เพื่อไม่บดบัง UI) */
+	@media(max-width:900px){
+		.moon{
+			width:260px;
+			height:260px;
+			right:5%;
+			top:6%;
+			animation-duration:12s;
+		}
+		/* ให้สอดคล้องกับขนาดท้องฟ้าใหม่บนจอเล็ก */
+		.sky{ height:36vh; }
+		main.container{ margin-top:36vh; }
+	}
+	@media(max-width:600px){
+		.moon{
+			width:140px;
+			height:140px;
+			right:4%;
+			top:6%;
+			animation-duration:10s;
+		}
+		/* บนมือถือให้ท้องฟ้าและน้ำยังคงแบ่งครึ่ง แตอลดความสูงรวมลง */
+		.sky{ height:36vh; }
+		main.container{ margin-top:36vh; }
+	}
+
+	/* ดาวกระพริบ */
+	.sky .star{
+		position:absolute;
+		width:4px;height:4px;border-radius:50%;
+		background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd47a 40%, rgba(255,180,60,0.15) 80%);
+		box-shadow:0 0 8px rgba(255,230,150,0.9);
+		opacity:0;
+		filter:blur(0.4px);
+		animation: starTwinkle linear infinite;
+	}
+	@keyframes starTwinkle{
+		0%{opacity:0.05; transform:scale(0.7)}
+		50%{opacity:1; transform:scale(1.2)}
+		100%{opacity:0.05; transform:scale(0.7)}
+	}
+
+	/* === โคมลอย (sky lantern) === */
+	.lantern-layer{ position: absolute; inset:0; pointer-events:none; z-index:40; }
+	.lantern{
+		position:fixed;
+		width:48px;height:72px;
+		transform-origin:center bottom;
+		pointer-events:none;
+		z-index:60;
+	}
+	.lantern .body{
+		position:relative;
+		width:100%;height:100%;
+		border-radius:40% 40% 22% 22%;
+		background: linear-gradient(180deg,#fff3d9,#ffd9a8 60%, #ffb86b 100%);
+		box-shadow:0 6px 18px rgba(0,0,0,0.35), 0 0 18px rgba(255,200,80,0.06);
+		overflow:visible;
+	}
+	.lantern .frame{
+		position:absolute;left:50%;bottom:6%;
+		transform:translateX(-50%);
+		width:16px;height:16px;border-radius:2px;
+		background:linear-gradient(180deg,#fff6c8,#ffd86b);
+		box-shadow:0 0 10px rgba(255,200,80,0.9);
+	}
+	.lantern .glow{
+		position:absolute;left:50%;bottom:18%;
+		transform:translateX(-50%);
+		width:14px;height:14px;border-radius:50%;
+		background: radial-gradient(circle at 30% 30%, #fff8d0 0%, #ffd36a 40%, rgba(255,160,40,0.06) 80%);
+		filter:blur(6px);
+		opacity:0.9;
+	}
+	.lantern .flame{
+		position:absolute;left:50%;bottom:26%;
+		transform:translateX(-50%);
+		width:6px;height:12px;border-radius:50% 50% 40% 40%;
+		background:linear-gradient(180deg,#fff6a8,#ff9f3a);
+		box-shadow:0 0 10px rgba(255,180,60,0.9);
+		animation: flameFlicker 900ms infinite;
+	}
+	@keyframes flameFlicker{
+		0%{transform:translateX(-50%) translateY(0) scaleY(1)}
+		50%{transform:translateX(-52%) translateY(-1px) scaleY(1.05)}
+		100%{transform:translateX(-50%) translateY(0) scaleY(1)}
+	}
+
+	@keyframes lanternRise{
+		0%{ transform: translateY(0) translateX(0) rotate(0); opacity:1 }
+		100%{ transform: translateY(-140vh) translateX(-6vw) rotate(18deg); opacity:0.02 }
+	}
+	@keyframes lanternSway{
+		0%{ transform: rotate(-3deg) }
+		50%{ transform: rotate(3deg) }
+		100%{ transform: rotate(-3deg) }
+	}
+	/* เล็กน้อยปรับบนหน้าจอเล็ก */
+	@media(max-width:600px){
+		.moon{ width:72px; height:72px; right:4%; top:6% }
+		.sky{ height:28vh }
+		.lantern{ width:36px; height:56px; }
+	}
+
+	/* === white pagoda (เจดีย์สีขาว) === */
+	.pagoda.white{
+		position:absolute;
+		width:84px;height:auto;
+		pointer-events:auto;
+		z-index:14;
+		transform-origin:center bottom;
+		display:flex;flex-direction:column;align-items:center;gap:4px;
+	}
+	.pagoda.white .tiers{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+	.pagoda.white .tier{
+		background:#fff; border-radius:6px; box-shadow:0 8px 18px rgba(0,0,0,0.18);
+		border:1px solid rgba(0,0,0,0.06);
+	}
+	.pagoda.white .tier.t3{ width:68%; height:34px; }
+	.pagoda.white .tier.t2{ width:84%; height:28px; }
+	.pagoda.white .tier.t1{ width:100%; height:22px; }
+	.pagoda.white .spire{ width:8px; height:30px; background:#fff; border-radius:4px; box-shadow:0 6px 10px rgba(0,0,0,0.16); }
+	.pagoda.white .base{ width:120%; height:10px; background:linear-gradient(180deg,#f6f6f6,#eaeaea); border-radius:6px; margin-top:6px; transform:translateX(-10%); }
+	.pagoda.white .label{ position:absolute; left:50%; top:-12px; transform:translateX(-50%); font-size:11px; color:#222; background:rgba(255,255,255,0.95); padding:3px 6px; border-radius:6px; box-shadow:0 6px 12px rgba(0,0,0,0.08); }
+	.pagoda.white .reflection{ position:absolute; left:50%; top:100%; transform:translateX(-50%) scaleY(-1); width:84%; height:36%; opacity:0.14; filter: blur(4px) saturate(0.9); pointer-events:none; mix-blend-mode:screen; }
+	@keyframes pagodaBob{ 0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)} }
+	.pagoda.white{ animation: pagodaBob 6.5s ease-in-out infinite; }
+	/* end pagoda */
+
+	/* === boat (เรือกลางแม่น้ำ) === */
+	.boat{
+		position:absolute;
+		width:120px;
+		height:44px;
+		pointer-events:none;
+		z-index:9;
+		transform-origin:center bottom;
+	}
+	.boat .hull{
+		width:100%;
+		height:28px;
+		background: linear-gradient(180deg,#6b3a20,#3e2210);
+		border-radius:14px 14px 6px 6px;
+		box-shadow:0 8px 18px rgba(0,0,0,0.45);
+		position:relative;
+		overflow:visible;
+	}
+	.boat .deck{
+		position:absolute;
+		left:50%;
+		top:-6px;
+		transform:translateX(-50%);
+		width:60%;
+		height:10px;
+		background:#e7d3aa;
+		border-radius:6px;
+		box-shadow: inset 0 -3px 6px rgba(0,0,0,0.12);
+	}
+	.boat .flag{
+		position:absolute;
+		right:8px;
+		top:-18px;
+		width:0;height:0;
+		border-left:10px solid transparent;
+		border-right:10px solid transparent;
+		border-bottom:12px solid var(--lk-accent);
+		transform-origin:left bottom;
+	}
+	.boat .light{
+		position:absolute;
+		left:12px;
+		top:-8px;
+		width:8px;height:8px;border-radius:50%;
+		background: radial-gradient(circle,#fff8b8,#ffcf5c);
+		box-shadow:0 0 12px rgba(255,200,60,0.9);
+	}
+	/* bobbing motion */
+	@keyframes boatBobbing{ 0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)} }
+	.boat.bobbing{ animation: boatBobbing 5.6s ease-in-out infinite; }
+	/* traverse left->right / right->left */
+	@keyframes boatTraverseRight{ 0%{ left:-18% } 100%{ left:116% } }
+	@keyframes boatTraverseLeft{ 0%{ left:116% } 100%{ left:-18% } }
+	.boat.traverse-right{ animation: boatTraverseRight var(--duration) linear forwards; }
+	.boat.traverse-left { animation: boatTraverseLeft  var(--duration) linear forwards; }
+	/* small wake for boat */
+	.boat-wake{
+		position:absolute;
+		width:14px;height:6px;border-radius:50%;
+		background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+		filter: blur(3px);
+		opacity:0.85;
+		pointer-events:none;
+		animation: wakeExpand 1.6s cubic-bezier(.22,.9,.3,1) forwards;
+	}
+	@keyframes wakeExpand{ 0%{ transform:scaleX(0.3) scaleY(0.6); opacity:0.9 } 100%{ transform:scaleX(7) scaleY(1) translateY(-8px); opacity:0 } }
+	/* --- end boat --- */
+	/* --- extra realism: foam, sound toggle --- */
+	.water-foam{
+		position:absolute; pointer-events:none;
+		width:18px; height:8px; border-radius:50%;
+		background: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02));
+		filter: blur(3px);
+		opacity:0.9; transform-origin:center;
+		animation: foamFade 1.6s linear forwards;
+		z-index:4;
+	}
+	@keyframes foamFade{ 0%{ transform:scaleX(0.4) translateY(0); opacity:0.95 } 100%{ transform:scaleX(6) translateY(-12px); opacity:0 } }
+
+	/* small control to enable ambient audio */
+	#soundToggle{
+		background: rgba(255,255,255,0.06);
+		color: var(--lk-text);
+		border: 1px solid rgba(255,255,255,0.06);
+		padding:6px 10px;
+		border-radius:10px;
+		font-size:13px;
+		cursor:pointer;
+		backdrop-filter: blur(6px);
+	}
+	/* ...existing code... */
+
+</style>
+</head>
+<body class="loy-theme">
+	<header>
+		<div class="header-banner">
+			<!-- lotus SVG motif -->
+			<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" role="img">
+				<g fill="none" fill-rule="evenodd">
+					<path d="M32 44s10-16 22-16c0 0-10 2-10 10 0 0-6-1-12 6z" fill="#ffd9a8" opacity="0.95"/>
+					<path d="M32 44s-10-16-22-16c0 0 10 2 10 10 0 0 6-1 12 6z" fill="#ffd9a8" opacity="0.95"/>
+					<path d="M32 14c6 6 10 12 10 12s-6-2-10-2-10 2-10 2 4-6 10-12z" fill="#ffb86b"/>
+					<circle cx="32" cy="36" r="4" fill="#fff8e6" opacity="0.95"/>
+				</g>
+			</svg>
+			<div>
+				<h1>ลอยกระทงออนไลน์</h1>
+				<div class="subtitle">ร่วมส่งใจ ลอยความหวัง ใต้แสงจันทร์</div>
+			</div>
+		</div>
+		<!-- current visible krathongs counter -->
+		<div id="krathongCounter" aria-live="polite" aria-atomic="true" title="จำนวนกระทงที่ลอยอยู่">กระทงลอย: 0</div>
+		<!-- total participants (persistent counter of launched krathongs) -->
+		<div id="totalParticipants" aria-live="polite" aria-atomic="true" title="จำนวนผู้ร่วมลอย">ผู้ร่วมลอย: 0</div>
+		<!-- small control to enable ambient audio -->
+		<button id="soundToggle" type="button" aria-pressed="false">เสียงน้ำ: ปิด</button>
+	</header>
+
+	<!-- Top-left floating box (collapsible) -->
+	<!-- <div class="top-left-box" id="topLeftBox" role="region" aria-label="กล่องข้อมูลด่วน" aria-expanded="true">
+		<div class="icon" aria-hidden="true">รู</div>
+		<div class="label">ข้อมูลด่วน<br><small>คลิกเพื่อย่อ</small></div>
+		<button class="ctrl" id="topLeftToggle" aria-label="ย่อ/ขยาย">✕</button>
+	</div> -->
+	
+	<!-- เพิ่มท้องฟ้า + พระจันทร์ -->
+	<div class="sky" aria-hidden="true">
+		<div class="moon" id="moon"></div>
+		<!-- canvas for fireworks (pointer-events none so it won't block UI) -->
+		<canvas id="fwCanvas" class="fireworks-canvas" aria-hidden="true"></canvas>
+		<!-- ดาวจะถูกสร้างด้วย JS -->
+		<!-- ชั้นสำหรับโคมลอย -->
+		<div class="lantern-layer" id="lanternLayer" aria-hidden="true"></div>
+	</div>
+
+	<main class="container">
+		<section class="form-box">
+			<form id="krathongForm">
+				<label>ชื่อ (ผู้ลอย)
+					<input name="name" required maxlength="50" />
+				</label>
+				<label>ข้อความส่งท้าย (ไม่จำเป็น)
+					<textarea name="message" maxlength="200"></textarea>
+				</label>
+				<label>เลือกกระทง
+					<select name="style">
+						<option value="classic">กระทงดอกไม้</option>
+						<option value="leaf">กระทงใบตอง</option>
+						<option value="modern">กระทงสไตล์โมเดิร์น</option>
+					</select>
+				</label>
+
+				<!-- เพิ่ม: โหมดคู่ -->
+				<label style="display:flex;align-items:center;gap:8px">
+					<input type="checkbox" id="coupleToggle" name="couple" /> คู่รัก (แสดงชื่อคู่)
+				</label>
+				<label id="partnerField" style="display:none">
+					ชื่อคู่
+					<input type="text" id="partnerInput" name="partner" maxlength="50" />
+				</label>
+
+				<!-- เพิ่มช่องอัปโหลดรูป -->
+				<label>ใส่รูปกระทง (ไม่จำเป็น)
+					<input type="file" id="imageInput" name="image" accept="image/*" />
+					<img id="imagePreview" alt="preview" style="display:none" />
+				</label>
+
+				<label>
+					<input type="checkbox" name="candle" checked /> จุดเทียน
+				</label>
+				<button type="submit">ลอยกระทง</button>
+			</form>
+
+			<div id="submissionsLink">
+				<button id="viewList">ดูกระทงที่ลอยแล้ว</button>
+				<!-- ปุ่มปล่อยโคมลอย -->
+				<button id="launchLantern" type="button">ปล่อยโคมลอย</button>
+				<!-- ปุ่มสร้างเจดีย์ทราย -->
+				<button id="buildSand" type="button">สร้างเจดีย์ทราย</button>
+			</div>
+		</section>
+
+		<section class="river-box">
+			<div id="river">
+				<!-- กระทงจะถูกสร้างที่นี่ -->
+				<!-- เพิ่ม container สำหรับอนุภาค/แสง -->
+				<div class="particle-lights" aria-hidden="true"></div>
+
+				<!-- เพิ่มท่าไม้ (pier) สำหรับปล่อยกระทง -->
+				<div class="pier" aria-hidden="false" id="pier">
+					<div class="plank" role="group" aria-label="ท่าปล่อยกระทง">
+						<div class="post" aria-hidden="true"></div>
+						<div class="rope" aria-hidden="true"></div>
+
+						<!-- จุดปล่อย (data-left เป็นตำแหน่งเริ่มต้นเป็นเปอร์เซ็นต์ซ้ายของ river) -->
+						<div class="launch-spot" data-left="12" title="ปล่อยจากท่าซ้าย" tabindex="0">
+							<div class="icon" aria-hidden="true"></div>
+							<div class="label">ปล่อย (ซ้าย)</div>
+						</div>
+
+						<div class="launch-spot" data-left="24" title="ปล่อยจากท่ากลาง" tabindex="0">
+							<div class="icon" aria-hidden="true"></div>
+							<div class="label">ปล่อย (กลาง)</div>
+						</div>
+
+						<div class="launch-spot" data-left="36" title="ปล่อยจากท่าขวา" tabindex="0">
+							<div class="icon" aria-hidden="true"></div>
+							<div class="label">ปล่อย (ขวา)</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- คนยืนนิ่งที่ท่าน้ำ (จะถูกจัดตำแหน่งโดย JS ให้ตรงกลางท่า) -->
+				<div class="person standing idle" id="pierPerson" role="img" aria-label="ผู้ยืนที่ท่าน้ำ" tabindex="0" style="left:10%; bottom:18%;">
+					<div class="head" aria-hidden="true"></div>
+					<div class="torso" aria-hidden="true"></div>
+					<div class="arm a1" aria-hidden="true"></div>
+					<div class="arm a2" aria-hidden="true"></div>
+					<div class="leg l1" aria-hidden="true"></div>
+					<div class="leg l2" aria-hidden="true"></div>
+					<div class="shadow" aria-hidden="true"></div>
+				</div>
+
+				<!-- ป้ายไฟขนาดใหญ่เหนือท่า -->
+				<!-- <div class="billboard" id="billboard" role="img" aria-label="ป้ายไฟแสดงภาพบนท่าน้ำ" tabindex="0">
+					<div class="frame" id="billboardFrame">
+						<img id="billboardImg" alt="ป้ายภาพ" src="" style="background:linear-gradient(90deg,#0b344f,#132633)" />
+						<div class="overlay"></div>
+						<div class="caption" id="billboardCaption">ยินดีต้อนรับสู่งานลอยกระทง</div>
+						<!-- หลอดไฟรอบกรอบ -->
+						<!-- <div class="bulb b1"></div><div class="bulb b2"></div><div class="bulb b3"></div><div class="bulb b4"></div>
+						<div class="bulb b5"></div><div class="bulb b6"></div><div class="bulb b7"></div><div class="bulb b8"></div>
+						<div class="bulb b9"></div><div class="bulb b10"></div><div class="bulb b11"></div><div class="bulb b12"></div>
+						<div class="bulb b13"></div><div class="bulb b14"></div><div class="bulb b15"></div><div class="bulb b16"></div>
+						<div class="bulb b17"></div><div class="bulb b18"></div><div class="bulb b19"></div><div class="bulb b20"></div>
+						<div class="bulb b21"></div><div class="bulb b22"></div><div class="bulb b23"></div><div class="bulb b24"></div>
+						<!-- input ซ่อนสำหรับอัปโหลดภาพลงป้าย -->
+						<!-- <input id="billboardInput" type="file" accept="image/*" style="display:none" />
+					</div>
+				</div> -->
+
+				<!-- ชายหาด / พื้นทราย สำหรับวางเจดีย์ -->
+				<div class="shore" id="shore" aria-hidden="false">
+					<div class="sand" id="sandArea" aria-hidden="true"></div>
+				</div>
+
+				<!-- ศาลาไม้ท่าน้ำ -->
+				<div class="sala" id="salaWood" role="button" tabindex="0" aria-label="ศาลาไม้ท่าน้ำ">
+					<div class="roof" aria-hidden="true">
+						<div class="lanterns" aria-hidden="true">
+							<div class="lantern"></div>
+							<div class="lantern"></div>
+						</div>
+					</div>
+					<div class="floor" aria-hidden="true">
+						<div class="pillar p1" aria-hidden="true"></div>
+						<div class="pillar p3" aria-hidden="true"></div>
+						<div class="pillar p4" aria-hidden="true"></div>
+						<div class="pillar p2" aria-hidden="true"></div>
+						<div class="bench" aria-hidden="true"></div>
+					</div>
+					<div class="sala-reflection" id="salaReflection" aria-hidden="true"></div>
+				</div>
+
+				<!-- เพิ่มพระกลางน้ำองค์ใหญ่ (ตกแต่งด้วย SVG และสำเนาสะท้อน) -->
+				<div class="statue" id="bigStatue" role="button" tabindex="0" aria-label="พระพุทธรูปกลางน้ำ — คลิกเพื่อดูรายละเอียด">
+					<div class="halo" aria-hidden="true"></div>
+
+					<!-- รูปพระหลัก (SVG แบบเรียบเพื่อไม่ต้องพึ่งไฟล์ภายนอก) -->
+					<div class="figure" id="bigStatueGraphic" aria-hidden="true">
+						<svg viewBox="0 0 220 280" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+							<defs>
+								<linearGradient id="goldGrad" x1="0" x2="1" y1="0" y2="1">
+									<stop offset="0" stop-color="#fff8df"/>
+									<stop offset="0.5" stop-color="#ffdf8a"/>
+									<stop offset="1" stop-color="#c99a39"/>
+								</linearGradient>
+							</defs>
+							<!-- pedestal / lotus -->
+							<g transform="translate(110,220)">
+								<ellipse rx="72" ry="18" fill="#cfb27a" opacity="0.95"/>
+								<g fill="#e7d39a">
+									<path d="M-68 6 C-48 -10 -28 -12 0 -8 28 -12 48 -10 68 6 40 0 0 -2 -40 0z"/>
+								</g>
+							</g>
+							<!-- body simplified Buddha silhouette -->
+							<g transform="translate(110,100)" fill="url(#goldGrad)" stroke="#b37f2e" stroke-width="1.2">
+								<!-- torso -->
+								<path d="M-28 36 C-14 10 14 10 28 36 C22 62 -22 62 -28 36z"/>
+								<!-- head / ushnisha -->
+								<g transform="translate(0,-22)">
+									<ellipse rx="26" ry="28" fill="url(#goldGrad)"/>
+									<circle cx="6" cy="-10" r="4" fill="#b37f2e" opacity="0.12"/>
+									<path d="M0 -34 L6 -46 L-6 -46 Z" fill="#d9b052"/>
+								</g>
+								<!-- arms/robe hint -->
+								<path d="M-46 46 C-24 30 -8 26 0 34 8 26 24 30 46 46" fill="#f5d98a" opacity="0.95"/>
+							</g>
+						</svg>
+					</div>
+
+					<!-- สำเนาสะท้อน (ใช้ same SVG content cloned by JS for consistency) -->
+					<div class="reflection" id="bigStatueReflection" aria-hidden="true"></div>
+				</div>
+
+				<!-- modal และ backdrop สำหรับแสดงข้อมูลพระ -->
+				<div class="modal-backdrop" id="statueBackdrop" aria-hidden="true"></div>
+				<div class="statue-modal" id="statueModal" role="dialog" aria-modal="true" aria-labelledby="statueTitle">
+					<button class="close" id="statueClose" aria-label="ปิด">✕</button>
+					<h3 id="statueTitle">พระพุทธรูปกลางน้ำ</h3>
+					<p>พระพุทธรูปจำลองตั้งอยู่กลางน้ำเพื่อเป็นสัญลักษณ์ของความสงบและความปรารถนาดี สามารถคลิกเพื่อฟังเสียงระฆังและดูรายละเอียดได้</p>
+					<p style="font-size:13px;color:#444;margin-top:8px"><strong>ขอให้ทุกท่านมีความสุข สมหวัง และปลอดภัย</strong></p>
+				</div>
+
+			</div>
+		</section>
+	</main>
+
+	<footer>
+		<small>เว็บไซต์ตัวอย่างสำหรับงานลอยกระทงออนไลน์</small>
+	</footer>
+
+	<!-- เพิ่มสคริปต์สร้างไฟลอยและเพิ่มกลีบให้กระทงที่สร้างโดยฟอร์ม (ทำงานร่วมกับ app.js หากมี) -->
+	<script>
+	(function(){
+		const river = document.getElementById('river');
+		const lightsContainer = river.querySelector('.particle-lights');
+
+		// --- เพิ่มการจัดการไฟล์รูป ---
+		const imageInput = document.getElementById('imageInput');
+		const imagePreview = document.getElementById('imagePreview');
+		// เก็บ data URL ชั่วคราวก่อนจะฝังลงกระทง
+		window._lastKrathongImage = null;
+
+		imageInput && imageInput.addEventListener('change', (e)=>{
+			const f = e.target.files && e.target.files[0];
+			if(!f){ imagePreview.src=''; imagePreview.style.display='none'; window._lastKrathongImage = null; return; }
+			// อ่านเป็น data URL
+			const r = new FileReader();
+			r.onload = ()=>{ window._lastKrathongImage = r.result; imagePreview.src = r.result; imagePreview.style.display = 'block'; };
+			r.readAsDataURL(f);
+		});
+
+		// สร้างไฟลอยเป็นระยะ
+		function spawnFirefly(){
+			const f = document.createElement('div');
+			f.className = 'firefly';
+			// ตำแหน่งเริ่มต้นใกล้พื้นน้ำ (ด้านหน้าหรือด้านบนเล็กน้อย)
+			const left = Math.random()*90 + 5;
+			const top = 30 + Math.random()*40; // ภายในส่วนแม่น้ำ
+			f.style.left = left + '%';
+			f.style.top  = top + '%';
+			const duration = 7000 + Math.random()*6000;
+			f.style.animationDuration = duration + 'ms';
+			lightsContainer.appendChild(f);
+			setTimeout(()=> f.remove(), duration + 200);
+		}
+
+		// ทวิ้งเคิลเล็ก ๆ บนผิวน้ำ
+		function spawnTwinkle(){
+			const t = document.createElement('div');
+			t.className = 'twinkle';
+			const left = Math.random()*92 + 4;
+			const top = 60 + Math.random()*30;
+			t.style.left = left + '%';
+			t.style.top = top + '%';
+			t.style.animationDelay = (Math.random()*2) + 's';
+			river.appendChild(t);
+			setTimeout(()=> t.remove(), 4000 + Math.random()*2000);
+		}
+
+		// --- NEW: เก็บ snapshot ของฟอร์มปัจจุบัน และจัดการแสดง/ซ่อนช่องชื่อคู่ ---
+		const form = document.getElementById('krathongForm');
+		const coupleToggle = document.getElementById('coupleToggle');
+		const partnerField = document.getElementById('partnerField');
+		const partnerInput = document.getElementById('partnerInput');
+
+		window._currentFormData = {};
+
+		function updateFormSnapshot(){
+			if(! form) return;
+			const fd = Object.fromEntries(new FormData(form).entries());
+			// checkbox may be absent in entries, read it explicitly
+			fd.couple = !!(form.querySelector('input[name="couple"]') && form.querySelector('input[name="couple"]').checked);
+			window._currentFormData = fd;
+		}
+		// toggle partner field visibility
+		if(coupleToggle && partnerField){
+			coupleToggle.addEventListener('change', ()=> {
+				partnerField.style.display = coupleToggle.checked ? 'block' : 'none';
+				updateFormSnapshot();
+			});
+		}
+		// update snapshot on input/change
+		form && form.addEventListener('input', updateFormSnapshot);
+		form && form.addEventListener('change', updateFormSnapshot);
+		updateFormSnapshot();
+
+		// สร้างไฟลอยเริ่มต้นนิดหน่อย
+		for(let i=0;i<6;i++) setTimeout(spawnFirefly, i*400);
+
+		// ปรับ observer: ถ้ามีข้อมูลคู่จาก snapshot ให้แสดงชื่อคู่บน .label และติดหัวใจตกแต่ง
+		const observer = new MutationObserver(muts=>{
+			for(const m of muts){
+				for(const n of m.addedNodes){
+					if(n.nodeType===1 && n.classList.contains('krathong')){
+						// ใส่ petal elements ถ้ายังไม่มี
+						if(!n.querySelector('.petal')){
+							for(let i=1;i<=5;i++){
+								const p = document.createElement('div');
+								p.className = 'petal p'+i;
+								n.appendChild(p);
+							}
+						}
+						// ถ้าไม่มี label ให้ตั้งค่าเป็น "ผู้ลอย"
+						const lbl = n.querySelector('.label');
+						if(lbl && !lbl.textContent.trim()) lbl.textContent = 'ผู้ลอย';
+
+						// --- สร้างสะท้อน (reflection) จาก .body (clone แบบย่อ) ---
+						if(!n.querySelector('.reflection')){
+							const body = n.querySelector('.body');
+							if(body){
+								const refl = body.cloneNode(true);
+								refl.className = 'reflection';
+								// ปรับความสวยเล็กน้อย (ลบไอเท็มที่ไม่ควรสะท้อน เช่น .candle pseudo)
+								n.appendChild(refl);
+							}
+						}
+
+						// --- สร้าง ripple บนพื้นน้ำ ณ ตำแหน่งกระทง (เมื่อเพิ่งถูกเพิ่ม) ---
+						try{
+							// คำนวณตำแหน่งกลางด้านล่างของกระทงเป็นเปอร์เซ็นต์ภายใน #river
+							const krRect = n.getBoundingClientRect();
+							const riverRect = river.getBoundingClientRect();
+							const cx = (krRect.left + krRect.width/2 - riverRect.left) / riverRect.width * 100;
+							const cy = (krRect.bottom - riverRect.top) / riverRect.height * 100;
+							const ripple = document.createElement('div');
+							ripple.className = 'ripple';
+							ripple.style.left = Math.max(2, Math.min(98, cx)) + '%';
+							// วางให้ไม่พ้นขอบล่าง
+							ripple.style.top = Math.min(96, Math.max(4, cy)) + '%';
+							river.appendChild(ripple);
+							// ลบเมื่อจบรอบแอนิเมชัน
+							setTimeout(()=> ripple.remove(), 1800);
+						}catch(e){ /* เมื่อตำแหน่งไม่พร้อมก็ข้าม */ }
+
+						// --- ฝังรูปบน .body ถ้ามีการเลือกไว้ ---
+						try{
+							if(window._lastKrathongImage){
+								const body = n.querySelector('.body');
+								if(body){
+									const img = document.createElement('img');
+									img.className = 'krathong-img';
+									img.src = window._lastKrathongImage;
+									body.appendChild(img);
+									// ถ้ามี reflection อยู่ ให้ใส่ภาพใน reflection ด้วย (clone แบบอ่อน)
+									const refl = n.querySelector('.reflection');
+									if(refl){
+										const rimg = img.cloneNode();
+										refl.appendChild(rimg);
+									}
+									// เคลียร์ค่า และ preview ในฟอร์ม
+									window._lastKrathongImage = null;
+									if(imageInput) imageInput.value = '';
+									if(imagePreview) { imagePreview.src=''; imagePreview.style.display='none'; }
+								}
+							}
+						}catch(e){}
+
+						// --- NEW: ถ้า snapshot ระบุเป็นคู่ ให้แสดงชื่อคู่ ---
+						try{
+							const lbl = n.querySelector('.label');
+							// ถ้า snapshot ระบุเป็นคู่ ให้แสดงชื่อคู่
+							if(window._currentFormData && window._currentFormData.couple && window._currentFormData.partner){
+								const name1 = (window._currentFormData.name || 'ผู้ลอย').toString();
+								const name2 = window._currentFormData.partner.toString();
+								if(lbl){
+									lbl.classList.add('couple');
+									// sanitize using existing global function _escapeHtml (defined later in file)
+									lbl.innerHTML = `<div class="names"><span class="n1">${_escapeHtml(name1)}</span><span class="heart">❤</span><span class="n2">${_escapeHtml(name2)}</span></div>`;
+								}
+								// เพิ่มหัวใจตกแต่งบนตัวกระทง
+								if(!n.querySelector('.heart-deco')){
+									const h = document.createElement('div');
+									h.className = 'heart-deco';
+									h.textContent = '❤';
+									const body = n.querySelector('.body');
+									if(body) body.appendChild(h);
+								}
+							}
+						}catch(err){}
+					}
+				}
+			}
+		});
+		observer.observe(river, {childList:true, subtree:false});
+
+		// รอบการสร้างไฟลอยและทวิ้งเคิล
+		setInterval(()=>{ if(Math.random()>0.3) spawnFirefly(); }, 900);
+		setInterval(()=>{ if(Math.random()>0.4) spawnTwinkle(); }, 700);
+	})();
+
+	</script>
+
+	<!-- Persistent loopers: keep some krathongs gently drifting to signal 'people are launching' -->
+	<script>
+	(function spawnPersistentKrathongs(){
+		const river = document.getElementById('river');
+		if(!river) return;
+
+		const TARGET_LOOPERS = 22;     // desired number of persistent floating krathongs
+		const CHECK_FREQ = 3500;      // ms, how often to top up
+
+		function bumpTotal(){
+			window._totalLaunched = (window._totalLaunched || 0) + 1;
+			const el = document.getElementById('totalParticipants');
+			if(el) el.textContent = 'ผู้ร่วมลอย: ' + window._totalLaunched;
+		}
+
+		function createLooper(opts = {}){
+			// don't exceed a global safety cap
+			const ONSCREEN_CAP = 220;
+			if(river.querySelectorAll('.krathong').length >= ONSCREEN_CAP) return;
+
+			const styles = ['classic','leaf','modern'];
+			const style = opts.style || styles[Math.floor(Math.random()*styles.length)];
+			const k = document.createElement('div');
+			k.className = 'krathong loop ' + style;
+			k.innerHTML = `<div class="label">${opts.label||''}</div><div class="body"></div>${Math.random() < 0.6 ? '<div class="candle"></div>' : ''}`;
+
+			// spread across river area
+			const leftPct = (typeof opts.left === 'number') ? opts.left : (6 + Math.random()*88);
+			const bottomPct = (typeof opts.bottom === 'number') ? opts.bottom : (8 + Math.random()*28);
+			k.style.left = leftPct.toFixed(2) + '%';
+			k.style.bottom = bottomPct.toFixed(2) + '%';
+
+			// small size variation
+			const r = Math.random();
+			if(r < 0.12) k.classList.add('small');
+			else if(r > 0.88) k.classList.add('large');
+
+			river.appendChild(k);
+			// update total participants so header shows activity
+			bumpTotal();
+			return k;
+		}
+
+		// top-up loopers to target count
+		function topUpLoopers(){
+			const current = river.querySelectorAll('.krathong.loop').length;
+			const toCreate = Math.max(0, TARGET_LOOPERS - current);
+			for(let i=0;i<toCreate;i++){
+				// cluster sometimes near pier area for realism
+				const nearPier = Math.random() < 0.55;
+				const left = nearPier ? (10 + Math.random()*36) : (8 + Math.random()*84);
+				createLooper({ left });
+			}
+		}
+
+		// initial fill (staggered)
+		for(let i=0;i<TARGET_LOOPERS;i++){
+			setTimeout(()=> createLooper(), i*160 + Math.random()*240);
+		}
+
+		// keep topped up periodically
+		setInterval(topUpLoopers, CHECK_FREQ);
+	})();
+	</script>
+
+	<!-- add realism JS: per-krathong depth, wakes, and soft chime on launch -->
+	<script>
+	(function(){
+		// small helper: place wake near a krathong element
+		function createWakeFor(krathong){
+			try{
+				const river = document.getElementById('river');
+				if(!river) return;
+				const rect = krathong.getBoundingClientRect();
+				const riverRect = river.getBoundingClientRect();
+				// compute coordinates relative to river container
+				const left = rect.left + rect.width*0.5 - riverRect.left;
+				const top = rect.top + rect.height*0.75 - riverRect.top;
+				const w = document.createElement('div');
+				w.className = 'wake';
+				w.style.left = (left) + 'px';
+				w.style.top = (top) + 'px';
+				// small random width variation
+				w.style.opacity = 0.8;
+				river.appendChild(w);
+				setTimeout(()=> w.remove(), 1600);
+			}catch(e){}
+		}
+
+		// soft chime using WebAudio (very small, graceful fallback)
+		function playSoftChime(){
+			try{
+				const ctx = new (window.AudioContext || window.webkitAudioContext)();
+				const now = ctx.currentTime;
+				const osc = ctx.createOscillator();
+				const gain = ctx.createGain();
+				osc.type = 'sine';
+				osc.frequency.value = 880;
+				gain.gain.setValueAtTime(0.0001, now);
+				gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+				gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
+				osc.frequency.exponentialRampToValueAtTime(440, now + 0.9);
+				osc.connect(gain); gain.connect(ctx.destination);
+				osc.start(now);
+				osc.stop(now + 1.05);
+			}catch(e){}
+		}
+
+		// give each new krathong a randomized depth/scale and periodic wake
+		function enhanceKrathong(node){
+			if(!node || !node.classList.contains('krathong')) return;
+			// avoid double-enhancing
+			if(node.dataset._enhanced) return;
+			node.dataset._enhanced = '1';
+
+			// depth bias: near/mid/far
+			const r = Math.random();
+			let depth, depthLabel;
+			if(r < 0.18){ depth = 1.18; depthLabel = 'near'; }
+			else if(r > 0.88){ depth = 0.86; depthLabel = 'far'; }
+			else { depth = 0.98 + (Math.random()*0.14 - 0.06); depthLabel = 'mid'; }
+
+			// set CSS variable and attribute for depth
+			node.style.setProperty('--kr-scale', depth.toFixed(3));
+			node.setAttribute('data-depth', depthLabel);
+			// z-index slight variation (closer -> higher)
+			const z = Math.round(100 + (1/depth)*60);
+			node.style.zIndex = 60 + z;
+
+			// vary sway/gentle-sway duration for individuality
+			const swayDur = 4800 + Math.floor(Math.random()*3800);
+			node.style.animationDuration = swayDur + 'ms';
+
+			// if this krathong has a candle, append a candle-glow element for ambient light
+			if(node.querySelector('.candle') && !node.querySelector('.candle-glow')){
+				const glow = document.createElement('div');
+				glow.className = 'candle-glow';
+				node.querySelector('.body') && node.querySelector('.body').appendChild(glow);
+			}
+
+			// create periodic wake trail while element is present
+			const wakeInterval = setInterval(()=> {
+				if(!document.body.contains(node)) { clearInterval(wakeInterval); return; }
+				createWakeFor(node);
+			}, 1700 + Math.random()*1200);
+
+			// small random rotation offset to add variety
+			node.style.transform = `scale(${depth}) rotate(${(Math.random()*6-3).toFixed(2)}deg)`;
+
+			// subtle floating vertical micro-motion via CSS variable using inline keyframe (fast)
+			// keep it simple by toggling small translate every few seconds
+			let up = false;
+			const micro = setInterval(()=> {
+				if(!document.body.contains(node)){ clearInterval(micro); return; }
+				up = !up;
+				node.style.transform = `scale(${depth}) rotate(${(Math.random()*6-3).toFixed(2)}deg) translateY(${ up ? '-0.3vh' : '0.2vh' })`;
+			}, 3800 + Math.random()*2400);
+		}
+
+		// observe additions of krathongs and enhance them
+		const mo = new MutationObserver(muts=>{
+			for(const m of muts){
+				for(const n of m.addedNodes){
+					if(n.nodeType===1 && n.classList.contains('krathong')){
+						enhanceKrathong(n);
+					}
+				}
+			}
+		});
+		const river = document.getElementById('river');
+		if(river) mo.observe(river, { childList:true, subtree:false });
+
+		// when a krathong is launched, play a soft chime (audio hint) and create an immediate wake
+		window.addEventListener('krathong:launched', (e)=>{
+			try{ playSoftChime(); }catch(e){}
+			// if event has element reference, create wake; else try to wake last child
+			const river = document.getElementById('river');
+			if(!river) return;
+			const last = river.querySelector('.krathong:last-child');
+			if(last) createWakeFor(last);
+		});
+	})();
+	</script>
+
+	<!-- Add JS: create white pagoda in sand area when #buildSand is activated -->
+	<script>
+	(function(){
+		const buildBtn = document.getElementById('buildSand');
+		const sandArea = document.getElementById('sandArea');
+		if(!buildBtn || !sandArea) return;
+
+		function createWhitePagoda(){
+			const p = document.createElement('div');
+			p.className = 'pagoda white';
+			p.innerHTML = '<div class="label">เจดีย์สีขาว</div><div class="tiers"><div class="tier t3"></div><div class="tier t2"></div><div class="tier t1"></div></div><div class="spire"></div><div class="base"></div>';
+			// random horizontal placement within sand area (percent)
+			const leftPct = 6 + Math.random() * 80;
+			p.style.left = leftPct.toFixed(2) + '%';
+			// random small scale variation for realism
+			const s = 0.92 + Math.random()*0.18;
+			p.style.transform = `scale(${s})`;
+			sandArea.appendChild(p);
+
+			// add reflection (clone but simplified)
+			const refl = document.createElement('div');
+			refl.className = 'reflection';
+			refl.innerHTML = '<div class="tiers"><div class="tier t3"></div><div class="tier t2"></div><div class="tier t1"></div></div>';
+			p.appendChild(refl);
+
+			// ripple feedback
+			const r = document.createElement('div');
+			r.className = 'ripple';
+			// approximate pixel left relative to sandArea
+			const rect = sandArea.getBoundingClientRect();
+			r.style.left = (rect.width * (leftPct/100)) + 'px';
+			r.style.top = (rect.height * 0.6) + 'px';
+			sandArea.appendChild(r);
+			setTimeout(()=> r.remove(), 1200);
+
+			// increment total participants (visual cue)
+			window._totalLaunched = (window._totalLaunched || 0) + 1;
+			const tot = document.getElementById('totalParticipants');
+			if(tot) tot.textContent = 'ผู้ร่วมลอย: ' + window._totalLaunched;
+
+			// optional auto-remove after 30s
+			setTimeout(()=> { try{ p.remove(); }catch(e){} }, 30000);
+		}
+
+		buildBtn.addEventListener('click', createWhitePagoda);
+		buildBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); createWhitePagoda(); } });
+	})();
+	</script>
+
+	<!-- add boat spawn script -->
+	<script>
+	(function(){
+		const river = document.getElementById('river');
+		if(!river) return;
+
+		function createBoat(opts = {}){
+			const dir = opts.direction || (Math.random() < 0.5 ? 'right' : 'left'); // right means travel left->right
+			const duration = opts.duration || (32000 + Math.floor(Math.random()*28000)); // 32-60s
+			const scale = opts.scale || (0.85 + Math.random()*0.3);
+			const bottomPct = (opts.bottom != null) ? opts.bottom : (30 + Math.random()*18); // vertical band in river
+			const startLeftPct = dir === 'right' ? -18 : 116; // start off-screen
+			const boat = document.createElement('div');
+			boat.className = 'boat bobbing ' + (dir === 'right' ? 'traverse-right' : 'traverse-left');
+			boat.style.setProperty('--duration', duration + 'ms');
+			boat.style.bottom = bottomPct + '%';
+			boat.style.left = startLeftPct + '%';
+			boat.style.transform = `scale(${scale})`;
+			boat.innerHTML = '<div class="hull"><div class="deck"></div><div class="light" aria-hidden="true"></div></div><div class="flag" aria-hidden="true"></div>';
+			river.appendChild(boat);
+
+			// create periodic small wakes while the boat exists
+			const wakeTimer = setInterval(()=>{
+				if(!document.body.contains(boat)){ clearInterval(wakeTimer); return; }
+				try{
+					const rect = boat.getBoundingClientRect();
+					const rRect = river.getBoundingClientRect();
+					const wx = rect.left + rect.width*0.5 - rRect.left;
+					const wy = rect.top + rect.height*0.85 - rRect.top;
+					const w = document.createElement('div');
+					w.className = 'boat-wake';
+					w.style.left = wx + 'px';
+					w.style.top = wy + 'px';
+					river.appendChild(w);
+					setTimeout(()=> w.remove(), 1600);
+				}catch(e){}
+			}, 1600 + Math.random()*900);
+
+			// cleanup after travel plus small buffer
+			setTimeout(()=> { try{ boat.remove(); }catch(e){} clearInterval(wakeTimer); }, duration + 1400);
+			return boat;
+		}
+
+		// occasional ambient boats
+		setInterval(()=> {
+			if(Math.random() < 0.5) createBoat();
+		}, 18000 + Math.random()*12000);
+
+		// spawn a couple initially for immediate scene
+		setTimeout(()=> createBoat({ direction:'right', duration:42000 }), 900);
+		setTimeout(()=> createBoat({ direction:'left', duration:38000 }), 3200);
+
+		// optional: spawn a celebratory boat when a krathong is launched
+		window.addEventListener('krathong:launched', ()=> {
+			if(Math.random() < 0.28) createBoat({ duration: 30000 + Math.random()*22000 });
+		});
+	})();
+	</script>
+
+	<!-- append realistic engine script -->
+	<script>
+	(function(){
+		// create UI toggle inside header
+		const hdr = document.querySelector('header');
+		let soundBtn = document.getElementById('soundToggle');
+		if(hdr && !soundBtn){
+			soundBtn = document.createElement('button');
+			soundBtn.id = 'soundToggle';
+			soundBtn.type = 'button';
+			soundBtn.textContent = 'เสียงน้ำ: ปิด';
+			soundBtn.setAttribute('aria-pressed','false');
+			hdr.appendChild(soundBtn);
+		}
+
+		// WebAudio ambient water synth (lightweight, user-triggered)
+		let audioCtx = null, ambientNode = null, ambientGain = null;
+		function initAudio(){
+			if(audioCtx) return;
+			try{
+				audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+				// white noise buffer
+				const bufSize = audioCtx.sampleRate * 2;
+				const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+				const data = buffer.getChannelData(0);
+				for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * 0.35;
+				const noise = audioCtx.createBufferSource();
+				noise.buffer = buffer;
+				noise.loop = true;
+				const lp = audioCtx.createBiquadFilter();
+				lp.type = 'lowpass'; lp.frequency.value = 1200;
+				const hp = audioCtx.createBiquadFilter();
+				hp.type = 'highpass'; hp.frequency.value = 120;
+				ambientGain = audioCtx.createGain();
+				ambientGain.gain.value = 0.0001;
+				noise.connect(hp); hp.connect(lp); lp.connect(ambientGain); ambientGain.connect(audioCtx.destination);
+				noise.start();
+				ambientNode = noise;
+				// slight slow LFO on gain for breathing water
+				const lfo = audioCtx.createOscillator();
+				const lfoGain = audioCtx.createGain();
+				lfo.type = 'sine'; lfo.frequency.value = 0.06;
+				lfoGain.gain.value = 0.04;
+				lfo.connect(lfoGain);
+				lfoGain.connect(ambientGain.gain);
+				lfo.start();
+			}catch(e){
+				audioCtx = null;
+			}
+		}
+		function setAmbient(on){
+			if(on){
+				initAudio();
+				if(!ambientGain) return;
+				ambientGain.gain.cancelScheduledValues(0);
+				ambientGain.gain.linearRampToValueAtTime(0.055, audioCtx.currentTime + 0.6);
+				soundBtn.textContent = 'เสียงน้ำ: เปิด';
+				soundBtn.setAttribute('aria-pressed','true');
+				localStorage.setItem('lk_sound','1');
+			}else{
+				if(!ambientGain){ soundBtn.textContent = 'เสียงน้ำ: ปิด'; soundBtn.setAttribute('aria-pressed','false'); localStorage.setItem('lk_sound','0'); return; }
+				ambientGain.gain.cancelScheduledValues(0);
+				ambientGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.9);
+				soundBtn.textContent = 'เสียงน้ำ: ปิด';
+				soundBtn.setAttribute('aria-pressed','false');
+				localStorage.setItem('lk_sound','0');
+			}
+		}
+		// toggle handler (must be a user gesture to start audio on some browsers)
+		soundBtn && soundBtn.addEventListener('click', ()=>{
+			const enabled = soundBtn.getAttribute('aria-pressed') === 'true';
+			if(!enabled){
+				try{ setAmbient(true); }catch(e){}
+			}else setAmbient(false);
+		});
+
+		// restore preference
+		if(localStorage.getItem('lk_sound') === '1'){
+			// do not auto-start audio unless user already allowed; still initialize when page interacted
+			document.addEventListener('click',{once:true,passive:true}, ()=> setAmbient(true));
+		}
+
+		/* physics: gentle current that nudges loopers and spawns micro-foam */
+		const river = document.getElementById('river');
+		let last = performance.now();
+		function step(now){
+			const dt = Math.min(60, now - last);
+			last = now;
+			if(!river) return requestAnimationFrame(step);
+
+			// move loopers slowly with slight meander and avoid stacking
+			const loopers = river.querySelectorAll('.krathong.loop');
+			const width = river.clientWidth;
+			const height = river.clientHeight;
+			loopers.forEach((el, idx)=>{
+				if(!el._vx) {
+					// set per-element drift speed (px per second)
+					const dir = Math.random() < 0.5 ? -1 : 1;
+					el._vx = dir * (2 + Math.random()*16) / 1000; // percent per ms
+					el._phase = Math.random() * Math.PI*2;
+				}
+				// read current left in percent (style.left might be px or %)
+				const left = parseFloat(el.style.left || getComputedStyle(el).left || 0);
+				const bottom = parseFloat(el.style.bottom || 10);
+				// meander using sine of time
+				el._phase += dt * 0.0012;
+				const sway = Math.sin(el._phase) * 0.15; // percent
+				const newLeft = Math.max(2, Math.min(98, left + el._vx * dt * 100 + sway));
+				el.style.left = newLeft.toFixed(3) + '%';
+				// slight vertical micro shift (parallax)
+				const depth = el.getAttribute('data-depth') || 'mid';
+				const zscale = depth === 'near' ? 1.06 : (depth === 'far' ? 0.94 : 1.0);
+				el.style.transform = `scale(${parseFloat(getComputedStyle(el).getPropertyValue('--kr-scale') || 1) * zscale}) rotate(${(Math.sin(el._phase)*2).toFixed(2)}deg)`;
+				// occasional micro ripple behind it
+				if(Math.random() < 0.006) spawnMicroWake(el);
+			});
+
+			// boats: spawn foam behind moving boats for extra detail
+			const boats = river.querySelectorAll('.boat');
+			boats.forEach(b=>{
+				if(!b._lastFoam || now - b._lastFoam > 420 + Math.random()*300){
+					b._lastFoam = now;
+					try{
+						const rect = b.getBoundingClientRect();
+						const rRect = river.getBoundingClientRect();
+						const fx = rect.left + (b.classList.contains('traverse-left') ? rect.width*0.15 : rect.width*0.85) - rRect.left;
+						const fy = rect.top + rect.height*0.9 - rRect.top;
+						const foam = document.createElement('div');
+						foam.className = 'water-foam';
+						foam.style.left = fx + 'px';
+						foam.style.top = fy + 'px';
+						river.appendChild(foam);
+						setTimeout(()=> foam.remove(), 1600);
+					}catch(e){}
+				}
+			});
+
+			requestAnimationFrame(step);
+		}
+		requestAnimationFrame(step);
+
+		function spawnMicroWake(el){
+			try{
+				const r = river.getBoundingClientRect();
+				const kr = el.getBoundingClientRect();
+				const w = document.createElement('div');
+				w.className = 'wake';
+				w.style.left = (kr.left + kr.width*0.5 - r.left) + 'px';
+				w.style.top = (kr.top + kr.height*0.85 - r.top) + 'px';
+				river.appendChild(w);
+				setTimeout(()=> w.remove(), 1200);
+			}catch(e){}
+		}
+
+		// performance note: when many elements exist, throttle wake spawn by sampling probability
+	})();
+	</script>
+</body>
+</html>

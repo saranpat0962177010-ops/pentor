@@ -1,0 +1,24 @@
+:root{
+	--bg:#07123b; --river:#0b3b67; --card:#fff;
+}
+*{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans Thai",sans-serif}
+body{margin:0;background:linear-gradient(180deg,#081234 0%, #05264a 60%);color:#fff;min-height:100vh;display:flex;flex-direction:column}
+header{padding:16px;text-align:center}
+.container{display:flex;gap:16px;padding:16px;flex:1}
+.form-box{width:320px;background:rgba(255,255,255,0.06);padding:16px;border-radius:8px}
+.form-box label{display:block;margin-bottom:8px;font-size:14px;color:#e6eefc}
+.form-box input, .form-box textarea, .form-box select{width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:#fff}
+.form-box button{margin-top:8px;padding:10px 12px;border-radius:6px;border:0;background:#ffb347;color:#000;cursor:pointer}
+.river-box{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+#river{width:100%;height:60vh;background:linear-gradient(180deg,var(--river),#02243b);border-radius:12px;position:relative;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.krathong{position:absolute;bottom:10%;left:10%;transform:translateX(-50%);pointer-events:none;transition:transform 10s linear, opacity 10s linear}
+.krathong .body{width:120px;height:60px;border-radius:60px 60px 30px 30px;display:flex;align-items:center;justify-content:center}
+.krathong.classic .body{background:linear-gradient(90deg,#ffddc1,#ffd1a3);border:2px solid #ffa86b}
+.krathong.leaf .body{background:linear-gradient(90deg,#b4e197,#7fd18a);border:2px solid #4fb76d}
+.krathong.modern .body{background:linear-gradient(90deg,#fff8b8,#ffd66b);border:2px dashed #ffd66b}
+.krathong .candle{width:10px;height:26px;background:#ffcf5c;border-radius:4px;box-shadow:0 0 8px rgba(255,200,60,0.9);margin-top:-20px}
+.krathong .label{position:absolute;top:-48px;left:50%;transform:translateX(-50%);font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.6)}
+.float-away{transform:translateX(120vw) translateY(-10vh);opacity:0}
+.list-modal{position:absolute;left:50%;top:10%;transform:translateX(-50%);background:var(--card);color:#000;padding:12px;border-radius:8px;max-height:60vh;overflow:auto;display:none;width:320px}
+.list-modal.show{display:block}
+footer{padding:8px;text-align:center;color:#cfe0ff}
